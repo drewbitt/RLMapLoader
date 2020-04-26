@@ -1,6 +1,8 @@
 nimcache/
 nimblecache/
 htmldocs/
+bin/
+*.exe
 
 .code/
 .idea/

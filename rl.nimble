@@ -11,4 +11,4 @@ bin           = @["main"]
 
 # Dependencies
 
-requires "nim >= 1.0.2", "wNim >= 0.11.0"
+requires "nim >= 1.0.2", "wNim >= 0.11.0, winregistry >= 0.2.1, regex >=0.14.1"
