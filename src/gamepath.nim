@@ -1,5 +1,5 @@
 import winregistry, strutils, regex, sequtils
-from os import existsFile, joinPath, splitPath, existsDir
+from os import existsFile, joinPath, splitPath, existsDir, existsOrCreateDir
 
 let rocketLeagueGameID = 252950
 
@@ -38,7 +38,7 @@ proc getLibraries(steamInstallDir: string): seq[string] =
             echo "Could not parse libraries"
             return
 
-proc getModsDir*(): string =
+proc getGamePath(): string =
     var steamInstallDir: string
     try:
         let steamKey = open("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam", samRead)
@@ -73,4 +73,20 @@ proc getModsDir*(): string =
         return finalPath
     else:
         # what to return?
+        return
+
+type ModsDirResult = object
+    path: string
+    createdModFolder: bool
+
+proc getModsDir(): ModsDirResult =
+    let gamePath = getGamePath()
+    if gamePath.isEmptyOrWhitespace:
+        let modsPath = joinPath(gamePath, "mods")
+
+        if existsOrCreateDir(modsPath):
+            return ModsDirResult(path: modsPath, createdModFolder: false)
+        else:
+            return ModsDirResult(path: modsPath, createdModFolder: true)
+    else:
         return
