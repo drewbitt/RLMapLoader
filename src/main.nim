@@ -8,14 +8,14 @@
 import strutils, sequtils, os
 
 import wNim/[wApp, wDataObject, wAcceleratorTable, wUtils,
-  wFrame, wPanel, wMessageDialog, wMenuBar, wMenu, wIcon, wBitmap,
-  wStatusBar, wStaticText, wTextCtrl, wListBox, wStaticBitmap]
+  wFrame, wPanel, wMessageDialog, wMenuBar, wMenu, wIcon,
+  wDirDialog, wStatusBar, wStaticText]
 
 import gamepath
 
 type
   MenuID = enum
-    idText = wIdUser, idFile, idImage, idPaste, idExit
+    idText = wIdUser, idFile, idExit, idPaste
 
 # const defaultText = "Drag and drop .udk or .upk map files to load"
 # const defaultFile = ["dragdrop.exe"]
@@ -31,7 +31,6 @@ let frame = Frame(title="Rocket League Map Loader", size=(600, 350),
   style=wDefaultFrameStyle or wDoubleBuffered)
 #frame.icon = Icon("", 0) # load icon from exe file.
 
-# let statusBar = StatusBar(frame)
 let menuBar = MenuBar(frame)
 let panel = Panel(frame)
 
@@ -56,16 +55,6 @@ let target = StaticText(panel, label="Drag and drop .udk or .upk map files to lo
   style=wBorderStatic or wAlignCentre or wAlignMiddle)
 target.setDropTarget()
 
-# let dataText = TextCtrl(panel,
-#   style=wInvisible or wBorderStatic or wTeMultiLine or wTeReadOnly or
-#   wTeRich or wTeDontWrap)
-
-# let dataList = ListBox(panel,
-#   style=wInvisible or wLbNoSel or wLbNeededScroll)
-
-# let dataBitmap = StaticBitmap(panel,
-#   style=wInvisible or wSbFit)
-
 proc layout() =
   panel.autolayout """
     spacing: 20
@@ -80,11 +69,23 @@ proc layout() =
   #   V:|-[target]-|
   #   V:|-[dataText,dataList,dataBitmap]-|
   # """
+proc modDirSelection() =
+    let dir = DirDialog(frame, message="Choose Rocket League directory", style=wDdDirMustExist).display()
+    # validate Rocket League Directory and make it something I can use
+    if dir.len != 0:
+      echo dir
+
+      # need to see if need to create mod dir or not
+      modsDir = ModsDirResult(path: dir, createdModFolder: false)
+    # else recursion?
 
 proc loadModsDir() =
-  modsDir = getModsDir()
+  if modsDir.path.isEmptyOrWhitespace or not existsDir modsDir.path:
+    modsDir = getModsDir()
+
   if modsDir.path.isEmptyOrWhitespace:
     MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
+    modDirSelection()
 
 proc handleFiles() =
     let files = data.getFiles().filterIt((splitFile it).ext == ".upk" or (splitFile it).ext == ".udk")
@@ -99,35 +100,6 @@ proc handleFiles() =
       MessageDialog(frame, "Could not copy files to mod directory", caption="Error", wIconErr).display()
 
     # file dialog to choose, don't let them continue until chosen and valid
-
-# proc displayData() =
-#   if data.isText():
-#     let text = data.getText()
-#     dataText.setValue(text)
-#     statusBar.setStatusText(fmt"Got {text.len} characters.")
-
-#     dataText.show()
-#     dataList.hide()
-#     dataBitmap.hide()
-
-#   elif data.isFiles():
-#     dataList.clear()
-#     for file in data.getFiles():
-#       dataList.append(file)
-#     statusBar.setStatusText(fmt"Got {dataList.len} files.")
-
-#     dataList.show()
-#     dataText.hide()
-#     dataBitmap.hide()
-
-#   elif data.isBitmap():
-#     let bmp = data.getBitmap()
-#     dataBitmap.setBitmap(bmp)
-#     statusBar.setStatusText(fmt"Got a {bmp.width}x{bmp.height} image.")
-
-#     dataBitmap.show()
-#     dataList.hide()
-#     dataText.hide()
 
 target.wEvent_DragEnter do (event: wEvent):
   var dataObject = event.getDataObject()
@@ -156,10 +128,6 @@ target.wEvent_Drop do (event: wEvent):
 
 frame.idExit do ():
   delete frame
-
-# frame.idText do ():
-#   data = DataObject(defaultText)
-#   # displayData()
 
 frame.idFile do ():
   data = DataObject("")
