@@ -94,7 +94,7 @@ proc handleFiles() =
 
     let copyBool = copyFiles(modsDir.path, data.getFiles().filterIt((splitFile it).ext == ".upk" or (splitFile it).ext == ".udk"))
     if copyBool:
-      MessageDialog(frame, "Copied files to mod directory", caption="", wIconInformation).display()
+      MessageDialog(frame, "Copied file(s) to mod directory", caption="", wIconInformation).display()
     else:
       MessageDialog(frame, "Could not copy files to mod directory", caption="Error", wIconErr).display()
 

@@ -81,7 +81,7 @@ type ModsDirResult* = object
 
 proc getModsDir*(): ModsDirResult =
     let gamePath = getGamePath()
-    if gamePath.isEmptyOrWhitespace:
+    if not gamePath.isEmptyOrWhitespace:
         let modsPath = joinPath(gamePath, "mods")
 
         if existsOrCreateDir(modsPath):
@@ -93,14 +93,15 @@ proc getModsDir*(): ModsDirResult =
 
 proc copyFiles*(modsDir: string, files: seq[string]): bool =
     for file in files:
-        var newFile = file
         var fileSplit = splitFile file
+        var newFile = fileSplit.name & fileSplit.ext
         if fileSplit.ext == ".udk":
-            newFile = joinPath(fileSplit.dir, fileSplit.name, ".upk")
+            newFile = fileSplit.name & ".upk"
 
         let modsDirFileName = joinPath(modsDir, newFile)
         try:
             copyFile(file, modsDirFileName)
+            return true
         except:
             let
                 e = getCurrentException()
