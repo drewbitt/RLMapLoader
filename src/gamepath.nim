@@ -79,15 +79,18 @@ type ModsDirResult* = object
     path*: string
     createdModFolder*: bool
 
+proc createOrReturnModsDir(gamePath: string): ModsDirResult =
+    let modsPath = joinPath(gamePath, "mods")
+
+    if existsOrCreateDir(modsPath):
+        return ModsDirResult(path: modsPath, createdModFolder: false)
+    else:
+        return ModsDirResult(path: modsPath, createdModFolder: true)
+
 proc getModsDir*(): ModsDirResult =
     let gamePath = getGamePath()
     if not gamePath.isEmptyOrWhitespace:
-        let modsPath = joinPath(gamePath, "mods")
-
-        if existsOrCreateDir(modsPath):
-            return ModsDirResult(path: modsPath, createdModFolder: false)
-        else:
-            return ModsDirResult(path: modsPath, createdModFolder: true)
+        return createOrReturnModsDir(gamePath)
     else:
         return
 
@@ -107,3 +110,23 @@ proc copyFiles*(modsDir: string, files: seq[string]): bool =
                 e = getCurrentException()
                 msg = getCurrentExceptionMsg()
             echo "Got exception ", repr(e), " with message ", msg
+
+proc getModsDirManual*(path: string): ModsDirResult =
+    ## Get mods dir from a manual specification of the game path
+    ## Support various cases depending on user confusion
+
+    let tail = (splitPath path).tail
+    var fullPath = path
+
+    case tail:
+        of "rocketleague":
+            fullPath = joinPath(path, "TAGame", "CookedPCConsole")
+        of "TAGame":
+            fullPath = joinPath(path, "CookedPCConsole")
+        of "CookedPCConsole":
+            discard
+        else:
+            # Not rocket league folder
+            return ModsDirResult(path: "", createdModFolder: false)
+
+    return createOrReturnModsDir(fullPath)

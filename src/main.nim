@@ -1,10 +1,3 @@
-#====================================================================
-#
-#               wNim - Nim's Windows GUI Framework
-#                (c) Copyright 2017-2020 Ward
-#
-#====================================================================
-
 import strutils, sequtils, os
 
 import wNim/[wApp, wDataObject, wAcceleratorTable, wUtils,
@@ -19,7 +12,6 @@ type
 
 let app = App()
 var data = DataObject("")
-
 var modsDir: ModsDirResult
 
 let frame = Frame(title="Rocket League Map Loader", size=(600, 350),
@@ -57,21 +49,23 @@ proc layout() =
   #   V:|-[target]-|
   #   V:|-[dataText,dataList,dataBitmap]-|
   # """
+
 proc modDirSelection() =
+    ## Manual selection of mods dir
     let dir = DirDialog(frame, message="Choose Rocket League directory", style=wDdDirMustExist).display()
     # validate Rocket League Directory and make it something I can use
     if dir.len != 0:
-      echo dir
-
-      # need to see if need to create mod dir or not
-      modsDir = ModsDirResult(path: dir, createdModFolder: false)
+      modsDir = getModsDirManual(dir)
+      echo modsDir
     else:
       # quit if they exit out
       delete frame
 
 proc loadModsDir() =
+  ## Auto load mods dir using vdf file lookup. If can't find, display manual selection window
   if modsDir.path.isEmptyOrWhitespace or not existsDir modsDir.path:
-    modsDir = getModsDir()
+    modsDir = ModsDirResult(path: "", createdModFolder: false)
+    # modsDir = getModsDir()
 
   if modsDir.path.isEmptyOrWhitespace:
     MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
@@ -89,11 +83,9 @@ proc handleFiles() =
     else:
       MessageDialog(frame, "Could not copy files to mod directory", caption="Error", wIconErr).display()
 
-    # file dialog to choose, don't let them continue until chosen and valid
-
 target.wEvent_DragEnter do (event: wEvent):
   let dataObject = event.getDataObject()
-  if dataObject.isText() or dataObject.isFiles() or dataObject.isBitmap():
+  if dataObject.isFiles():
     event.setEffect(wDragCopy)
   else:
     event.setEffect(wDragNone)
@@ -136,8 +128,7 @@ panel.wEvent_Size do ():
   layout()
 
 layout()
-# displayData()
-loadModsDir()
 frame.center()
 frame.show()
+loadModsDir()
 app.mainLoop()
