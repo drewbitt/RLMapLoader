@@ -50,13 +50,21 @@ proc layout() =
   #   V:|-[dataText,dataList,dataBitmap]-|
   # """
 
+proc modDirSelection()
+
+proc checkModDir() =
+    if modsDir.path.isEmptyOrWhitespace:
+      MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
+      modDirSelection()
+    MessageDialog(frame, "Set mod directory", caption="Success", wIconInformation)
+
 proc modDirSelection() =
     ## Manual selection of mods dir
     let dir = DirDialog(frame, message="Choose Rocket League directory", style=wDdDirMustExist).display()
     # validate Rocket League Directory and make it something I can use
     if dir.len != 0:
       modsDir = getModsDirManual(dir)
-      echo modsDir
+      checkModDir()
     else:
       # quit if they exit out
       delete frame
@@ -64,12 +72,9 @@ proc modDirSelection() =
 proc loadModsDir() =
   ## Auto load mods dir using vdf file lookup. If can't find, display manual selection window
   if modsDir.path.isEmptyOrWhitespace or not existsDir modsDir.path:
-    modsDir = ModsDirResult(path: "", createdModFolder: false)
-    # modsDir = getModsDir()
+    modsDir = getModsDir()
 
-  if modsDir.path.isEmptyOrWhitespace:
-    MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
-    modDirSelection()
+  checkModDir()
 
 proc handleFiles() =
     let files = data.getFiles().filterIt((splitFile it).ext == ".upk" or (splitFile it).ext == ".udk")
@@ -79,7 +84,7 @@ proc handleFiles() =
 
     let copyBool = copyFiles(modsDir.path, data.getFiles().filterIt((splitFile it).ext == ".upk" or (splitFile it).ext == ".udk"))
     if copyBool:
-      MessageDialog(frame, "Copied file(s) to mod directory", caption="", wIconInformation).display()
+      MessageDialog(frame, "Copied file(s) to mod directory", caption="Success", wIconInformation).display()
     else:
       MessageDialog(frame, "Could not copy files to mod directory", caption="Error", wIconErr).display()
 

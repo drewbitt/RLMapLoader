@@ -115,6 +115,8 @@ proc getModsDirManual*(path: string): ModsDirResult =
     ## Get mods dir from a manual specification of the game path
     ## Support various cases depending on user confusion
 
+    # This isn't a comprehensive check, just should help the user out
+
     let tail = (splitPath path).tail
     var fullPath = path
 
@@ -125,6 +127,8 @@ proc getModsDirManual*(path: string): ModsDirResult =
             fullPath = joinPath(path, "CookedPCConsole")
         of "CookedPCConsole":
             discard
+        of "mods":
+            return ModsDirResult(path: path, createdModFolder: false)
         else:
             # Not rocket league folder
             return ModsDirResult(path: "", createdModFolder: false)
