@@ -5,12 +5,13 @@
 #
 #====================================================================
 
-import
-  strformat
+import strutils, sequtils, os
 
 import wNim/[wApp, wDataObject, wAcceleratorTable, wUtils,
-  wFrame, wPanel, wMenuBar, wMenu, wIcon, wBitmap,
+  wFrame, wPanel, wMessageDialog, wMenuBar, wMenu, wIcon, wBitmap,
   wStatusBar, wStaticText, wTextCtrl, wListBox, wStaticBitmap]
+
+import gamepath
 
 type
   MenuID = enum
@@ -23,6 +24,8 @@ type
 let app = App()
 # var data = DataObject(defaultText)
 var data = DataObject("")
+
+var modsDir: ModsDirResult
 
 let frame = Frame(title="Rocket League Map Loader", size=(600, 350),
   style=wDefaultFrameStyle or wDoubleBuffered)
@@ -78,6 +81,25 @@ proc layout() =
   #   V:|-[dataText,dataList,dataBitmap]-|
   # """
 
+proc loadModsDir() =
+  modsDir = getModsDir()
+  if modsDir.path.isEmptyOrWhitespace:
+    MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
+
+proc handleFiles() =
+    let files = data.getFiles().filterIt((splitFile it).ext == ".upk" or (splitFile it).ext == ".udk")
+    if files.len == 0:
+      MessageDialog(frame, "No map files loaded", caption="Error", wIconErr).display()
+      return
+
+    let copyBool = copyFiles(modsDir.path, data.getFiles().filterIt((splitFile it).ext == ".upk" or (splitFile it).ext == ".udk"))
+    if copyBool:
+      MessageDialog(frame, "Copied files to mod directory", caption="", wIconInformation).display()
+    else:
+      MessageDialog(frame, "Could not copy files to mod directory", caption="Error", wIconErr).display()
+
+    # file dialog to choose, don't let them continue until chosen and valid
+
 # proc displayData() =
 #   if data.isText():
 #     let text = data.getText()
@@ -123,9 +145,11 @@ target.wEvent_DragOver do (event: wEvent):
 
 target.wEvent_Drop do (event: wEvent):
   var dataObject = event.getDataObject()
-  if dataObject.isText() or dataObject.isFiles() or dataObject.isBitmap():
+  if dataObject.isFiles():
     # use copy constructor to copy the data.
     data = DataObject(dataObject)
+
+    handleFiles()
     # displayData()
   else:
     event.setEffect(wDragNone)
@@ -151,6 +175,7 @@ panel.wEvent_Size do ():
 
 layout()
 # displayData()
+loadModsDir()
 frame.center()
 frame.show()
 app.mainLoop()

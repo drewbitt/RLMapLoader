@@ -1,5 +1,4 @@
-import winregistry, strutils, regex, sequtils
-from os import existsFile, joinPath, splitPath, existsDir, existsOrCreateDir
+import winregistry, strutils, regex, sequtils, os
 
 let rocketLeagueGameID = 252950
 
@@ -73,13 +72,14 @@ proc getGamePath(): string =
         return finalPath
     else:
         # what to return?
+        echo "Game path does not exist"
         return
 
-type ModsDirResult = object
-    path: string
-    createdModFolder: bool
+type ModsDirResult* = object
+    path*: string
+    createdModFolder*: bool
 
-proc getModsDir(): ModsDirResult =
+proc getModsDir*(): ModsDirResult =
     let gamePath = getGamePath()
     if gamePath.isEmptyOrWhitespace:
         let modsPath = joinPath(gamePath, "mods")
@@ -90,3 +90,19 @@ proc getModsDir(): ModsDirResult =
             return ModsDirResult(path: modsPath, createdModFolder: true)
     else:
         return
+
+proc copyFiles*(modsDir: string, files: seq[string]): bool =
+    for file in files:
+        var newFile = file
+        var fileSplit = splitFile file
+        if fileSplit.ext == ".udk":
+            newFile = joinPath(fileSplit.dir, fileSplit.name, ".upk")
+
+        let modsDirFileName = joinPath(modsDir, newFile)
+        try:
+            copyFile(file, modsDirFileName)
+        except:
+            let
+                e = getCurrentException()
+                msg = getCurrentExceptionMsg()
+            echo "Got exception ", repr(e), " with message ", msg
