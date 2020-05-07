@@ -13,6 +13,8 @@ type
 let app = App()
 var data = DataObject("")
 var modsDir: ModsDirResult
+# used to determine whether to show manual mod dir setting success
+var failLoadModDir = false
 
 let frame = Frame(title="Rocket League Map Loader", size=(600, 350),
   style=wDefaultFrameStyle or wDoubleBuffered)
@@ -32,32 +34,26 @@ accel.add(wAccelCtrl, wKey_V, idPaste)
 frame.acceleratorTable = accel
 
 let target = StaticText(panel, label="Paste or drag and drop .udk or .upk map files to load",
-  style=wBorderStatic or wAlignCentre or wAlignMiddle)
+  style=wTransparentWindow or wAlignCentre or wAlignMiddle)
 target.setDropTarget()
 
 proc layout() =
   panel.autolayout """
-    spacing: 20
     H:|-[target]-|
     V:|-[target]-|
   """
-
-  # proc layout() =
-  # panel.autolayout """
-  #   spacing: 20
-  #   H:|-[target]-[dataText,dataList,dataBitmap]-|
-  #   V:|-[target]-|
-  #   V:|-[dataText,dataList,dataBitmap]-|
-  # """
 
 proc modDirSelection()
 
 proc checkModDir() =
     if modsDir.path.isEmptyOrWhitespace:
+      failLoadModDir = true
       MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
       modDirSelection()
     else:
-      MessageDialog(frame, "Set mod directory", caption="Success", wIconInformation).display()
+      if failLoadModDir:
+        MessageDialog(frame, "Set mod directory", caption="Success", wIconInformation).display()
+        failLoadModDir = false
 
 proc modDirSelection() =
     ## Manual selection of mods dir
