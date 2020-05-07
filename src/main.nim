@@ -56,7 +56,8 @@ proc checkModDir() =
     if modsDir.path.isEmptyOrWhitespace:
       MessageDialog(frame, "Cannot find mod directory", caption="Error", wIconErr).display()
       modDirSelection()
-    MessageDialog(frame, "Set mod directory", caption="Success", wIconInformation)
+    else:
+      MessageDialog(frame, "Set mod directory", caption="Success", wIconInformation).display()
 
 proc modDirSelection() =
     ## Manual selection of mods dir
