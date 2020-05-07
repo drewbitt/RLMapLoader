@@ -2,7 +2,7 @@ import strutils, sequtils, os
 
 import wNim/[wApp, wDataObject, wAcceleratorTable, wUtils,
   wFrame, wPanel, wMessageDialog, wMenuBar, wMenu, wIcon,
-  wDirDialog, wFileDialog, wStatusBar, wStaticText]
+  wDirDialog, wFileDialog, wStaticText, wFont]
 
 import gamepath
 
@@ -16,12 +16,16 @@ var modsDir: ModsDirResult
 # used to determine whether to show manual mod dir setting success
 var failLoadModDir = false
 
-let frame = Frame(title="Rocket League Map Loader", size=(600, 350),
+var frame = Frame(title="Rocket League Map Loader", size=(600, 350),
   style=wDefaultFrameStyle or wDoubleBuffered)
+frame.setFont(Font(14))
+# text color
+frame.setForegroundColor(wWhite)
 #frame.icon = Icon("", 0) # load icon from exe file.
 
 let menuBar = MenuBar(frame)
-let panel = Panel(frame)
+var panel = Panel(frame)
+panel.setBackgroundColor(wDarkGrey)
 
 let menu = Menu(menuBar, "&File")
 menu.append(idPaste, "&Paste\tCtrl+V file", "Paste file from clipboard.")
