@@ -4,7 +4,8 @@ let rocketLeagueGameID = 252950
 
 proc checkGameInLibraries(paths: seq[string], gameId: int): string =
     for path in paths:
-        let manifestPath = joinPath(path, "steamapps", "appmanifest_" & $gameId & ".acf")
+        let manifestPath = joinPath(path, "steamapps", "appmanifest_" &
+                $gameId & ".acf")
         if existsFile manifestPath:
             return manifestPath
 
@@ -14,7 +15,7 @@ proc parseLibraries(vdf: seq[TaintedString]): seq[string] =
 
     var libraries: seq[string]
     for line in vdf:
-        let newLine = line.strip(trailing=false)
+        let newLine = line.strip(trailing = false)
         var m: RegexMatch
         if newLine.match(re, m):
             try:
@@ -66,7 +67,8 @@ proc getGamePath(): string =
 
     # Confirmed installed via manifest check
 
-    let finalPath = joinPath((splitPath manifest).head, "common", "rocketleague", "TAGame", "CookedPCConsole")
+    let finalPath = joinPath((splitPath manifest).head, "common",
+            "rocketleague", "TAGame", "CookedPCConsole")
 
     if existsDir finalPath:
         return finalPath
